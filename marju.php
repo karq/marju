@@ -8,7 +8,7 @@
 	
 	#bot
 	$bot['botnick'] = "marju";
-	$bot['botpassword'] = "london";
+	$bot['botpassword'] = "";
 	$bot['botident'] = "marjubot";
 	$bot['botrealname'] = "Marju";
 	$bot['localhost'] = "localhost";
