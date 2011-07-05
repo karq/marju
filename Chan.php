@@ -1,4 +1,4 @@
-#!/usr/local/bin/php
+#!/usr/bin/php
 
 <?php
 
@@ -11,11 +11,11 @@ class Chan {
 	public $timerfile;
 
 	function Chan($data) {
-		$this->name = $data[name];
-		$this->vocfile = $data[vocfile];
-		$this->quotefile = $data[quotefile];
+		$this->name = $data['name'];
+		$this->vocfile = $data['vocfile'];
+		$this->quotefile = $data['quotefile'];
 		$this->timerfile = $data['timerfile'];
-		$this->speak = $data[speak];
+		$this->speak = $data['speak'];
 	}
 
 }

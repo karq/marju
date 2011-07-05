@@ -1,4 +1,4 @@
-#!/usr/local/bin/php
+#!/usr/bin/php
 
 <?php
 
@@ -143,4 +143,4 @@ class Bot {
 		$this->disconnect();
 	}
 }
-
+?>

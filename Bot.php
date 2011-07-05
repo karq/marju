@@ -1,4 +1,4 @@
-#!/usr/local/bin/php
+#!/usr/bin/php
 
 <?php
 
@@ -20,7 +20,6 @@ class Bot {
 
 	var $serveraddress;
 	var $serverport;
-	var $serverchannel;
 
 	private $poker_name;
 
@@ -29,17 +28,16 @@ class Bot {
 	##--------------------------------------------
 	function Bot($bot, $chans) {
 
-		$this->botnick = $bot[botnick];
-		$this->botpassword = $bot[botpassword];
-		$this->botident = $bot[botident];
-		$this->botrealname = $bot[botrealname];
-		$this->localhost = $bot[localhost];
+		$this->botnick = $bot['botnick'];
+		$this->botpassword = $bot['botpassword'];
+		$this->botident = $bot['botident'];
+		$this->botrealname = $bot['botrealname'];
+		$this->localhost = $bot['localhost'];
 
 		$this->channels = $chans;
 
-		$this->serveraddress = $bot[serveraddress];
-		$this->serverport = $bot[serverport];
-		$this->serverchannel = $bot[serverchannel];
+		$this->serveraddress = $bot['serveraddress'];
+		$this->serverport = $bot['serverport'];
 
 		$this->poker_name = $bot['poker_name'];
 
@@ -123,14 +121,14 @@ class Bot {
 	##--------------------------------------------
 	function process_data(){
 		$params = explode(" ", $this->rawdata);
-		$user = str_replace(":", "", $from[0]);
-		$details = explode ("@", $from[1]);
 		$message = str_replace("$params[0]", "", $this->rawdata);
 		$message = str_replace("$params[1]", "", $message);
 		$channel = explode(":",$message);
 		$channel = str_replace(" ","",$channel[0]);
 		$message = str_replace("$params[2]", "", $message);
 		$from = explode ("!", $params[0]);
+		$user = str_replace(":", "", $from[0]);
+		$details = explode ("@", $from[1]);
 
 		#stores the data in an array
 		$this->data['from'] = str_replace(":", "", $from[0]);
@@ -149,21 +147,21 @@ class Bot {
 
 		foreach ($this->channels as $chan) {
 			if ($chan->name == $channel) {
-				$this->data[channel] = $chan;
+				$this->data['channel'] = $chan;
 			}
 		}
 
-		if($this->data[message][0] == "!"){
-			$maction = explode(" ", $this->data[message]);
-			$mfullaction = str_replace($maction[0], "", $this->data[message]);
+		if($this->data['message'][0] == "!"){
+			$maction = explode(" ", $this->data['message']);
+			$mfullaction = str_replace($maction[0], "", $this->data['message']);
 
-			$this->data[action] = "TRUE";
-			$this->data[message_action] = $maction[0];
-			$this->data[message_target] = $maction[1];
-			$this->data[message_target2] = $maction[2];
-			$this->data[message_action_text] = str_replace(" ", "%20", substr($mfullaction, 1));
-			$this->data[message_action_text_plain] = str_replace("%20", " ", $this->data[message_action_text]);
-			$this->data[message_action_text_plain_with_params] = substr(str_replace($maction[0], "", str_replace($maction[1], "", $mfullaction)), 2);
+			$this->data['action'] = "TRUE";
+			$this->data['message_action'] = $maction[0];
+			$this->data['message_target'] = $maction[1];
+			$this->data['message_target2'] = $maction[2];
+			$this->data['message_action_text'] = str_replace(" ", "%20", substr($mfullaction, 1));
+			$this->data['message_action_text_plain'] = str_replace("%20", " ", $this->data['message_action_text']);
+			$this->data['message_action_text_plain_with_params'] = substr(str_replace($maction[0], "", str_replace($maction[1], "", $mfullaction)), 2);
 		}
 	}
 
@@ -172,8 +170,8 @@ class Bot {
 	##Parses the data that was just sent - i.e. checks for messages and does them
 	##--------------------------------------------
 	function parse_data(){
-		if($this->data[channel] != null AND $this->data[action] == 'TRUE'){
-			switch($this->data[message_action]){
+		if($this->data['channel'] != null AND $this->data['action'] == 'TRUE'){
+			switch($this->data['message_action']){
 				case '!h':
 					$this->help();
 					break;
@@ -192,6 +190,9 @@ class Bot {
 				case '!ilm':
 					$this->ilm();
 					break;
+				case '!rand':
+					$this->rannainfo();
+					break;
 				case '!omx':
 					$this->omx();
 					break;
@@ -203,7 +204,7 @@ class Bot {
 					break;
 			}
 		}
-		if($this->data[ping] == 'PING'){
+		if($this->data['ping'] == 'PING'){
 			$this->send("PONG");
 			return;
 		}
@@ -216,26 +217,24 @@ class Bot {
 	##--------------------------------------------
 	function ai() {
 
-		if ($this->data[channel] == null) return;
-		if ($this->data[channel]->speak == false) return;
-		if ($this->data[message][0] == "!") return;
+		if ($this->data['channel'] == null) return;
+		if ($this->data['channel']->speak == false) return;
+		if ($this->data['message'][0] == "!") return;
 
-		################################ LOL #############################################
-		$match = preg_match('/(\.png|\.jpg|\.gif)^/',$this->data[message],$asd);
-		if ($match AND $this->data[channel]->name == "#starpump.ee" AND $this->data[from] == "Garli") {
-			$this->send('PRIVMSG '.$this->data[channel]->name.' :'.'OLD');
+		$match = preg_match('/(\.png|\.jpg|\.gif)^/',$this->data['message'],$asd);
+		if ($match AND $this->data['channel']->name == "#starpump.ee" AND $this->data[from] == "Garli") {
+			$this->send('PRIVMSG '.$this->data['channel']->name.' :'.'OLD');
 		}
-		################################ LOL #############################################
 		
 		$random = rand(0,99);
-		$hasBotNick = strpos(strtolower($this->data[message]),strtolower($this->botnick));
+		$hasBotNick = strpos(strtolower($this->data['message']),strtolower($this->botnick));
 
 		#Kui sõnum sisaldab boti nicki, siis 60% tõenäosusega bot ütleb midagi suvalist
 		if($hasBotNick !== false) {
 			if ($random < 60) {
-				$f_contents = file($this->data[channel]->vocfile);
+				$f_contents = file($this->data['channel']->vocfile);
 				$line = $f_contents[array_rand($f_contents)];
-				$this->send("PRIVMSG ".$this->data[channel]->name." :$line");
+				$this->send("PRIVMSG ".$this->data['channel']->name." :$line");
 			}
 			return;
 		}
@@ -244,8 +243,8 @@ class Bot {
 
 		#10% tõenäosusega öeldud sõnum salvestatakse sõnavarasse
 		if($random < 10) {
-			$lisamine = @fopen($this->data[channel]->vocfile, 'a+');
-			fputs($lisamine,$this->data[message]."\n");
+			$lisamine = @fopen($this->data['channel']->vocfile, 'a+');
+			fputs($lisamine,$this->data['message']."\n");
 			fclose($lisamine);
 		}
 
@@ -257,10 +256,10 @@ class Bot {
 	##Displays a quote to the user from the database
 	##--------------------------------------------
 	function quote(){
-		$quotefile = $this->data[channel]->quotefile;
+		$quotefile = $this->data['channel']->quotefile;
 		$getquote = @fopen($quotefile,'r');
 
-		$wordToFind = strtolower($this->data[message_action_text_plain]);
+		$wordToFind = strtolower($this->data['message_action_text_plain']);
 
 		$quotes [] = "";
 
@@ -292,11 +291,11 @@ class Bot {
 	##Adds quote to file
 	##--------------------------------------------
 	function addquote(){
-		$quotefile = $this->data[channel]->quotefile;
+		$quotefile = $this->data['channel']->quotefile;
 		$addquote = fopen($quotefile,'a+');
-		fputs($addquote,$this->data[message_action_text_plain]."\n");
+		fputs($addquote,$this->data['message_action_text_plain']."\n");
 		fclose($addquote);
-		$this->send("NOTICE ".$this->data[from].' : Tsitaat lisatud!');
+		$this->send("NOTICE ".$this->data['from'].' : Tsitaat lisatud!');
 	}
 
 	##--------------------------------------------
@@ -305,10 +304,10 @@ class Bot {
 	##--------------------------------------------
 
 	function quotestat(){
-		$wordToFind = strtolower($this->data[message_action_text_plain]);
+		$wordToFind = strtolower($this->data['message_action_text_plain']);
 		$numberOfQuotes = 0;
 
-		$quotefile = $this->data[channel]->quotefile;
+		$quotefile = $this->data['channel']->quotefile;
 		$countquote = @fopen($quotefile,'r');
 		if ($wordToFind == "") $wordToFind = ' ';
 		if ($countquote) {
@@ -323,9 +322,9 @@ class Bot {
 		}
 
 		if ($wordToFind === ' ') {
-			$this->send("PRIVMSG ".$this->data[channel]->name." :Kokku on $numberOfQuotes tsitaati.");
+			$this->send("PRIVMSG ".$this->data['channel']->name." :Kokku on $numberOfQuotes tsitaati.");
 		}
-		else $this->send("PRIVMSG ".$this->data[channel]->name." :Sõna \"$wordToFind\" kohta on $numberOfQuotes tsitaati.");
+		else $this->send("PRIVMSG ".$this->data['channel']->name." :Sõna \"$wordToFind\" kohta on $numberOfQuotes tsitaati.");
 	}
 
 	##--------------------------------------------
@@ -334,9 +333,9 @@ class Bot {
 	##--------------------------------------------
 
 		function translate() {
-			$text = urlencode(substr($this->data[message_action_text_plain],6));
-			$destLang = urlencode($this->data[message_target2]);
-			$srcLang = urlencode($this->data[message_target]);
+			$text = urlencode(substr($this->data['message_action_text_plain'],6));
+			$destLang = urlencode($this->data['message_target2']);
+			$srcLang = urlencode($this->data['message_target']);
 
 			$trans = @file_get_contents("http://ajax.googleapis.com/ajax/services/language/translate?v=1.0&q={$text}&langpair={$srcLang}|{$destLang}");
 			$json = json_decode($trans,true);
@@ -356,17 +355,15 @@ class Bot {
 		$url = "http://www.emhi.ee/index.php?ide=21&v_kaart=0";
 		$f = "<B>";
 		$t = "&deg;";
-		$linn = ucfirst($this->data[message_target]);
-		
+		$linn = ucfirst($this->data['message_target']);
 		#############################
 		if ($linn == "Tar" || $linn == "Tart" || $linn == "Tartu") {
 			$this->tartuilm();
 			return;
 		}
 		#############################
-		
 		if($linn == '') {
-			$this->send("NOTICE ".$this->data[from]." :Olemasolevad linnad: Heltermaa, Jõgeva, Jõhvi, Kihnu, Kunda, Kuusiku, Lääne-Nigula, Narva-Jõesuu, Pakri, Pärnu, Ristna, Rohuküla, Roomassaare, Ruhnu, Sõrve, Tallinn, Tartu, Tiirikoja, Türi, Valga, Viljandi, Vilsandi, Virtsu, Võru, Väike-Maarja");
+			$this->send("NOTICE ".$this->data['from']." :Olemasolevad linnad: Heltermaa, Jõgeva, Jõhvi, Kihnu, Kunda, Kuusiku, Lääne-Nigula, Narva-Jõesuu, Pakri, Pärnu, Ristna, Rohuküla, Roomassaare, Ruhnu, Sõrve, Tallinn, Tartu, Tiirikoja, Türi, Valga, Viljandi, Vilsandi, Virtsu, Võru, Väike-Maarja");
 			return;
 		}
 		preg_match('/<td height="30">'.$linn.'(.*?)<\/td>'."\n\t\t\t".'<td align="center">(.*?)<\/td>'."\n\t\t\t".'<td align="center">(.*?)<\/td>/', file_get_contents($url), $info);
@@ -374,7 +371,7 @@ class Bot {
 		$info = str_replace($esimene[0],"",$info);
 		preg_match('/<\/td>/',$info[0],$teine);
 		$info = str_replace($teine[0],"",$info[0]);
-		$this->send("PRIVMSG ".$this->data[channel]->name." :".$info);
+		$this->send("PRIVMSG ".$this->data['channel']->name." :".$info);
 	}
 
 	##--------------------------------------------
@@ -387,9 +384,35 @@ class Bot {
 		$temp = $json['data'][0]['value'];
 		$temp = floatval($temp);
 		$temp = round($temp,1);
-		$this->send("PRIVMSG ".$this->data[channel]->name." :$temp".chr(10));
+		$this->send("PRIVMSG ".$this->data['channel']->name." :$temp".chr(10));
 	}
 
+	##--------------------------------------------
+	##RANNAINFO
+	##
+	##--------------------------------------------
+	function rannainfo() {
+		$url = "http://www.g4s.ee/beaches2.php";
+		$dom = new DOMDocument('1.0'); 
+		$dom->load($url);
+		$rannad = $dom->getElementsByTagName('marker');
+		
+		$otsing = $this->data['message_target'];
+		$otsi = strtolower($otsing);
+		foreach ($rannad as $elem) {
+			$rand = strtolower($elem->getAttribute('town'));
+			if (preg_match("/^$otsi(.*)$/", $rand)) {
+				$watertemp = $elem->getAttribute('watertemp');
+				$airtemp = $elem->getAttribute('airtemp');
+				$pop = $elem->getAttribute('pop');
+				$town  = $elem->getAttribute('town');
+				$time  = $elem->getAttribute('time');
+				$this->send("PRIVMSG ".$this->data['channel']->name." :$town kell $time - Vesi: $watertemp Õhk: $airtemp Inimesi: $pop");
+				return;
+			}
+		}
+	}
+	
 	##--------------------------------------------
 	##OMX
 	##
@@ -402,7 +425,7 @@ class Bot {
 
 		preg_match('/'.$stock.'[1A][LRT]<\/a><\/td> \n\t\t\t\t\t\t\t\t<td>[TLNRIGV]{3} <\/td> \n\t\t\t\t<td>[EURLTV]{3}<\/td> \n\t\t\t\t<td>(.*?)<\/td> \n\t\t\t\t\t\t\t\t<td>(.*?)<\/td> \n\t\t\t\t<td class="[negpos]{0,3}">(.*?)<\/td>/', file_get_contents($url), $info);
 		if($info == null) {
-			$this->send("PRIVMSG ".$this->data[channel]->name." :Ei leidnud seda aktsiat");
+			$this->send("PRIVMSG ".$this->data['channel']->name." :Ei leidnud seda aktsiat");
 			return;
 		}
 		$viimane = $info[1];
@@ -415,36 +438,38 @@ class Bot {
 			$muutus = " 0%";
 			$varv = '9';
 		}
-		$this->send("PRIVMSG ".$this->data[channel]->name." :".$viimane.''.$varv.$muutus);
+		$this->send("PRIVMSG ".$this->data['channel']->name." :".$viimane.''.$varv.$muutus);
 	}
 	##--------------------------------------------
 	##CALC FUNCTION
 	##
 	##--------------------------------------------
 	function calc(){
-		$query = $this->data[message_action_text_plain];
+		$query = $this->data['message_action_text_plain'];
 		if (!empty($query)){
 			$url = "http://www.google.co.uk/search?q=".urlencode($query);
 			$f = array("?", "<font size=-2> </font>", " &#215; 10", "<sup>", "</sup>");
 			$t = array("", "", "e", "^", "");
 			preg_match('/<h2 class=r style="font-size:138%"><b>(.*?)<\/b><\/h2>/', file_get_contents($url), $matches);
 			if (!$matches['1']){
-				$this->send("PRIVMSG ".$this->data[channel]->name." :Mingi jama on lol.");
+				$this->send("PRIVMSG ".$this->data['channel']->name." :Mingi jama on lol.");
 				return;
 			} else {
-				$this->send("PRIVMSG ".$this->data[channel]->name." :".str_replace($f, $t, $matches['1']));
+				$this->send("PRIVMSG ".$this->data['channel']->name." :".str_replace($f, $t, $matches['1']));
 				return;
 			}
 		} else return;
 	}
 
+
+
 	// Adds timer current time + given time. Saves in unix time.
 	function addtimer(){
-		$timerfile = $this->data[channel]->timerfile;
+		$timerfile = $this->data['channel']->timerfile;
 		$addtime = fopen($timerfile,'a+');
 		//TODO: parse time (and msg) from plaintext
 		$from = $this->data['from'];
-		$msg = $this->data[message_action_text_plain];
+		$msg = $this->data['message_action_text_plain'];
 		$msgArray = explode(' ', $msg, 2);
 		$timeInMinutesUnchecked = $msgArray[0];
 		if (!$timeInMinutesUnchecked) {
@@ -473,7 +498,7 @@ class Bot {
         //format timestamp/nickname/timer
 		fputs($addtime, $ready_time.'/'.$from.'/'.$time_minutes.'/'.$message."\n");
 		fclose($addtime);
-		$this->send("NOTICE ".$this->data[from].' : Timer lisatud!');
+		$this->send("NOTICE ".$this->data['from'].' : Timer lisatud!');
 	}
 
 	##--------------------------------------------
@@ -481,17 +506,17 @@ class Bot {
 	##
 	##--------------------------------------------
 	function help() {
-		$this->send("NOTICE ".$this->data[from].' :!quote [otsisõna] - väljastab suvalise tsitaadi, mis sisaldab otsingusõna');
-		$this->send("NOTICE ".$this->data[from].' :!addquote [tsitaat] - lisab tsitaadi');
-		$this->send("NOTICE ".$this->data[from].' :!quotestat [otsisõna] - väljastab otsisõna sisaldavate tsitaatide koguarvu');
-		$this->send("NOTICE ".$this->data[from].' :!trans [from] [to] [lause] - tõlgib lause ühest keelest teise');
-		$this->send("NOTICE ".$this->data[from].' :!calc [tehe] - kalkulaator');
-		$this->send("NOTICE ".$this->data[from].' :!ilm [asukoht] - väljastab asukoha temperatuuri. Parameetrita käsk annab asukohaloendi');
-		$this->send("NOTICE ".$this->data[from].' :!omx [aktsia lühinimi] - väljastab OMX aktsia hetkehinna ja päevase tõusuprotsendi');
-		$this->send("NOTICE ".$this->data[from].' :!timer [pikkus minutites] <[kirjeldus]> - väljastab antud minuti pärast sulle meeldetuletusteate');
+		$this->send("NOTICE ".$this->data['from'].' :!quote [otsisõna] - väljastab suvalise tsitaadi, mis sisaldab otsingusõna');
+		$this->send("NOTICE ".$this->data['from'].' :!addquote [tsitaat] - lisab tsitaadi');
+		$this->send("NOTICE ".$this->data['from'].' :!quotestat [otsisõna] - väljastab otsisõna sisaldavate tsitaatide koguarvu');
+		$this->send("NOTICE ".$this->data['from'].' :!trans [from] [to] [lause] - tõlgib lause ühest keelest teise');
+		$this->send("NOTICE ".$this->data['from'].' :!calc [tehe] - kalkulaator');
+		$this->send("NOTICE ".$this->data['from'].' :!ilm [asukoht] - väljastab asukoha temperatuuri. Parameetrita käsk annab asukohaloendi');
+		$this->send("NOTICE ".$this->data['from'].' :!rand [asukoht] - väljastab rannainfot');
+		$this->send("NOTICE ".$this->data['from'].' :!omx [aktsia lühinimi] - väljastab OMX aktsia hetkehinna ja päevase tõusuprotsendi');
+		$this->send("NOTICE ".$this->data['from'].' :!timer [pikkus minutites] <[kirjeldus]> - väljastab antud minuti pärast sulle meeldetuletusteate');
 		return;
 	}
-
 }
 
 ?>
