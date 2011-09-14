@@ -544,8 +544,9 @@ class Bot {
 		$key = "4e66020d86695";
 		$language = "en";
 		$address = "http://api.fmylife.com/view/random/?key=" . $key . "&language=" . $language;
+		echo $address;
 		$file = @file_get_contents($address);
-		$text = $this->getFMLText($file);
+		$text = getFMLText($file);
 		$this->send("PRIVMSG ".$this->data['channel']->name." :". $text);
 	}
 	
