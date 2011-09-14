@@ -202,6 +202,12 @@ class Bot {
 				case '!timer':
 					$this->addtimer();
 					break;
+				case "!imdb":
+					$this->getImdb();
+					break;
+				case "!fml":
+					$this->fml();
+					break;  
 			}
 		}
 		if($this->data['ping'] == 'PING'){
@@ -229,7 +235,7 @@ class Bot {
 		$random = rand(0,99);
 		$hasBotNick = strpos(strtolower($this->data['message']),strtolower($this->botnick));
 
-		#Kui sõnum sisaldab boti nicki, siis 60% tõenäosusega bot ütleb midagi suvalist
+		#Kui sï¿½num sisaldab boti nicki, siis 60% tï¿½enï¿½osusega bot ï¿½tleb midagi suvalist
 		if($hasBotNick !== false) {
 			if ($random < 60) {
 				$f_contents = file($this->data['channel']->vocfile);
@@ -241,7 +247,7 @@ class Bot {
 
 		$random = rand(0,99);
 
-		#10% tõenäosusega öeldud sõnum salvestatakse sõnavarasse
+		#10% tï¿½enï¿½osusega ï¿½eldud sï¿½num salvestatakse sï¿½navarasse
 		if($random < 10) {
 			$lisamine = @fopen($this->data['channel']->vocfile, 'a+');
 			fputs($lisamine,$this->data['message']."\n");
@@ -324,7 +330,7 @@ class Bot {
 		if ($wordToFind === ' ') {
 			$this->send("PRIVMSG ".$this->data['channel']->name." :Kokku on $numberOfQuotes tsitaati.");
 		}
-		else $this->send("PRIVMSG ".$this->data['channel']->name." :Sõna \"$wordToFind\" kohta on $numberOfQuotes tsitaati.");
+		else $this->send("PRIVMSG ".$this->data['channel']->name." :Sï¿½na \"$wordToFind\" kohta on $numberOfQuotes tsitaati.");
 	}
 
 	##--------------------------------------------
@@ -363,7 +369,7 @@ class Bot {
 		}
 		#############################
 		if($linn == '') {
-			$this->send("NOTICE ".$this->data['from']." :Olemasolevad linnad: Heltermaa, Jõgeva, Jõhvi, Kihnu, Kunda, Kuusiku, Lääne-Nigula, Narva-Jõesuu, Pakri, Pärnu, Ristna, Rohuküla, Roomassaare, Ruhnu, Sõrve, Tallinn, Tartu, Tiirikoja, Türi, Valga, Viljandi, Vilsandi, Virtsu, Võru, Väike-Maarja");
+			$this->send("NOTICE ".$this->data['from']." :Olemasolevad linnad: Heltermaa, Jï¿½geva, Jï¿½hvi, Kihnu, Kunda, Kuusiku, Lï¿½ï¿½ne-Nigula, Narva-Jï¿½esuu, Pakri, Pï¿½rnu, Ristna, Rohukï¿½la, Roomassaare, Ruhnu, Sï¿½rve, Tallinn, Tartu, Tiirikoja, Tï¿½ri, Valga, Viljandi, Vilsandi, Virtsu, Vï¿½ru, Vï¿½ike-Maarja");
 			return;
 		}
 		preg_match('/<td height="30">'.$linn.'(.*?)<\/td>'."\n\t\t\t".'<td align="center">(.*?)<\/td>'."\n\t\t\t".'<td align="center">(.*?)<\/td>/', file_get_contents($url), $info);
@@ -407,7 +413,7 @@ class Bot {
 				$pop = $elem->getAttribute('pop');
 				$town  = $elem->getAttribute('town');
 				$time  = $elem->getAttribute('time');
-				$this->send("PRIVMSG ".$this->data['channel']->name." :$town kell $time - Vesi: $watertemp Õhk: $airtemp Inimesi: $pop");
+				$this->send("PRIVMSG ".$this->data['channel']->name." :$town kell $time - Vesi: $watertemp ï¿½hk: $airtemp Inimesi: $pop");
 				return;
 			}
 		}
@@ -473,7 +479,7 @@ class Bot {
 		$msgArray = explode(' ', $msg, 2);
 		$timeInMinutesUnchecked = $msgArray[0];
 		if (!$timeInMinutesUnchecked) {
-		    $this->send("PRIVMSG ".$this->data['channel']->name." :Timeri argument puudus või oli 0!");
+		    $this->send("PRIVMSG ".$this->data['channel']->name." :Timeri argument puudus vï¿½i oli 0!");
             return false;
         }
 		if (!is_numeric($timeInMinutesUnchecked)) {
@@ -484,7 +490,7 @@ class Bot {
 		$time_minutes = intval($timeInMinutesUnchecked);
 
 		if ($time_minutes < 1) {
-		    $this->send("PRIVMSG ".$this->data['channel']->name." :Timeri minutiseier peab olema vähemalt 1!");
+		    $this->send("PRIVMSG ".$this->data['channel']->name." :Timeri minutiseier peab olema vï¿½hemalt 1!");
             return false;
         }
 
@@ -501,20 +507,77 @@ class Bot {
 		$this->send("NOTICE ".$this->data['from'].' : Timer lisatud!');
 	}
 
+   	##--------------------------------------------
+	##IMDB
+	##
+	##--------------------------------------------
+	   function getImdb(){
+	$title = $this->data['message_action_text_plain'];
+	$this->imdb($title);
+	
+	}
+
+	function imdb($text){
+		$address = "http://www.imdbapi.com/";
+		$text = str_replace(" ","+",$text);
+		$file = @file_get_contents($address . "?t=" . $text);
+		$json = json_decode($file,true);
+		if($json["Response"] == "True"){
+			$title = $json["Title"];
+			$id = $json["ID"];
+			$year = $json["Year"];
+			$info = $title . " " . $year . " " . " http://www.imdb.com/title/" . $id . "/";
+			$this->send("PRIVMSG ".$this->data['channel']->name." :".$info);
+		}
+		else{
+			$this->send("PRIVMSG ".$this->data['channel']->name." :IMDB:Sellist filmi ei leitud!");
+		}
+	}
+	
+	##--------------------------------------------
+	##FML - Retrieve a random post from fmylife.com
+	## and send to channel
+	##--------------------------------------------
+	
+	//Get random post from http://www.fmylife.com/ and send to channel.
+	function fml(){
+		$key = "4e66020d86695";
+		$language = "en";
+		$address = "http://api.fmylife.com/view/random/?key=" . $key . "&language=" . $language;
+		echo $address;
+		$file = @file_get_contents($address);
+		$text = getFMLText($file);
+		$this->send("PRIVMSG ".$this->data['channel']->name." :". $text);
+	}
+	
+	//Get random post text from fml XML
+	function getFMLText($file){
+				$doc = new DOMDocument(); 
+	            $doc->loadXML($file);
+	            $inputs = $doc->getElementsByTagName("item");
+	            $item = $inputs->item(0)->getElementsByTagName("text");
+	            $txt = $item->item(0)->nodeValue;
+				
+				return $txt;                
+	}
+
+
 	##--------------------------------------------
 	##HELP
 	##
 	##--------------------------------------------
 	function help() {
-		$this->send("NOTICE ".$this->data['from'].' :!quote [otsisõna] - väljastab suvalise tsitaadi, mis sisaldab otsingusõna');
+		$this->send("NOTICE ".$this->data['from'].' :!quote [otsisï¿½na] - vï¿½ljastab suvalise tsitaadi, mis sisaldab otsingusï¿½na');
 		$this->send("NOTICE ".$this->data['from'].' :!addquote [tsitaat] - lisab tsitaadi');
-		$this->send("NOTICE ".$this->data['from'].' :!quotestat [otsisõna] - väljastab otsisõna sisaldavate tsitaatide koguarvu');
-		$this->send("NOTICE ".$this->data['from'].' :!trans [from] [to] [lause] - tõlgib lause ühest keelest teise');
+		$this->send("NOTICE ".$this->data['from'].' :!quotestat [otsisï¿½na] - vï¿½ljastab otsisï¿½na sisaldavate tsitaatide koguarvu');
+		$this->send("NOTICE ".$this->data['from'].' :!trans [from] [to] [lause] - tï¿½lgib lause ï¿½hest keelest teise');
 		$this->send("NOTICE ".$this->data['from'].' :!calc [tehe] - kalkulaator');
-		$this->send("NOTICE ".$this->data['from'].' :!ilm [asukoht] - väljastab asukoha temperatuuri. Parameetrita käsk annab asukohaloendi');
-		$this->send("NOTICE ".$this->data['from'].' :!rand [asukoht] - väljastab rannainfot');
-		$this->send("NOTICE ".$this->data['from'].' :!omx [aktsia lühinimi] - väljastab OMX aktsia hetkehinna ja päevase tõusuprotsendi');
-		$this->send("NOTICE ".$this->data['from'].' :!timer [pikkus minutites] <[kirjeldus]> - väljastab antud minuti pärast sulle meeldetuletusteate');
+		$this->send("NOTICE ".$this->data['from'].' :!ilm [asukoht] - vï¿½ljastab asukoha temperatuuri. Parameetrita kï¿½sk annab asukohaloendi');
+		$this->send("NOTICE ".$this->data['from'].' :!rand [asukoht] - vï¿½ljastab rannainfot');
+		$this->send("NOTICE ".$this->data['from'].' :!omx [aktsia lï¿½hinimi] - vï¿½ljastab OMX aktsia hetkehinna ja pï¿½evase tï¿½usuprotsendi');
+		$this->send("NOTICE ".$this->data['from'].' :!timer [pikkus minutites] <[kirjeldus]> - vï¿½ljastab antud minuti pï¿½rast sulle meeldetuletusteate');
+		$this->send("NOTICE ".$this->data['from'].' :!imdb [Filmi nimi] - Tagastab filmi nime, aasta  ja IMDB lingi');
+		$this->send("NOTICE ".$this->data['from'].' :!fml - Suvaline postitus fmylife.com lehelt');
 		return;
 	}
 }
